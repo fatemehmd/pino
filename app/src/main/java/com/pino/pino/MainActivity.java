@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.media.AudioFormat;
+import android.speech.tts.TextToSpeech;
 import android.text.TextPaint;
 
 
@@ -243,14 +244,12 @@ public class MainActivity extends Activity implements
 
         Log.d(TAG, "Partial result: " + hypothesis);
         String text = hypothesis.getHypstr();
-        mVoice.speak("I heard partial  " + text, "partial" + text);
-
-        text = hypothesis.getHypstr();
-        if (text.equals(KEYPHRASE))
-            switchSearch(MENU_SEARCH);
-        else if (text.equals(WORD_SEARCH))
-            switchSearch(WORD_SEARCH);
-        else {
+        if (text.equals(KEYPHRASE)) {
+            mVoice.speak("Speak to me", "speak2me");
+            switchSearch(MENU_SEARCH); }
+        else  {
+            mVoice.speak("what's next", "whatnext");
+            drawTestImage(text);
             mUIUpdater.setResult(text);
             mHandler.post(mUIUpdater);
         }
@@ -289,10 +288,12 @@ public class MainActivity extends Activity implements
 
         // If we are not spotting, start listening with timeout (10000 ms or 10 seconds).
         if (searchName.equals(KWS_SEARCH)) {
-            mVoice.speak("Speak to me", "speak2me");
             recognizer.startListening(searchName);
-        } else {
-            mVoice.speak("ok, what next?", "oknext");
+            drawTestImage("sleep");
+            mVoice.speak("call my name", "callname");
+        }
+        else {
+            drawTestImage("idle");
             recognizer.startListening(searchName, 10000);
         }
         String caption = getResources().getString(captions.get(searchName));
@@ -324,10 +325,6 @@ public class MainActivity extends Activity implements
         // Create grammar-based search for selection between demos
         File menuGrammar = new File(assetsDir, "menu.gram");
         recognizer.addGrammarSearch(MENU_SEARCH, menuGrammar);
-
-        // Create language model search
-        File languageModel = new File(assetsDir, "en-70k-0.1-pruned.lm");
-        recognizer.addNgramSearch(WORD_SEARCH, languageModel);
     }
 
     @Override
@@ -414,6 +411,34 @@ public class MainActivity extends Activity implements
                 (mDisplay.getScreenWidth() / 2),
                 mDisplay.getScreenHeight() / 2 + (kTextSize / 3),
                 textPaint);
+        mDisplay.render();
+    }
+
+    // A simple demo function to draw an image
+    private void drawTestImage(String resource_name) {
+        if (mDisplay == null) {
+            return;
+        }
+        Canvas canvas = mDisplay.getCanvas();
+        Bitmap image;
+        if (resource_name.equals("idle")) {
+            image = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.idle);
+        } else if (resource_name.equals("smile")){
+            image = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.smile);
+        } else if (resource_name.equals("kiss")){
+            image = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.kiss);
+        } else {
+            image = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.sleep);
+        }
+
+        canvas.drawBitmap(image, null,
+                new RectF(0, 0,
+                        mDisplay.getScreenWidth(),
+                        mDisplay.getScreenHeight()), null);
         mDisplay.render();
     }
 
